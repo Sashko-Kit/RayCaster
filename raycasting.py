@@ -53,4 +53,13 @@ def ray_casting(screen, player, game_map, wall_texture):
     pygame.draw.line(minimap_surface, (0, 255, 0), (int(player.x / TILE_SIZE * cell_size), int(player.y / TILE_SIZE * cell_size)),
                      (int(fov_right_x / TILE_SIZE * cell_size), int(fov_right_y / TILE_SIZE * cell_size)), 2)
 
+    # Draw the health bar
+    health_bar_width = minimap_size
+    health_bar_height = 20
+    health_percentage = player.health / 100
+    health_bar_surface = pygame.Surface((health_bar_width, health_bar_height))
+    health_bar_surface.fill((100, 100, 100))
+    pygame.draw.rect(health_bar_surface, (255, 0, 0), (0, 0, health_bar_width * health_percentage, health_bar_height))
+    screen.blit(health_bar_surface, (10, SCREEN_HEIGHT - minimap_size - health_bar_height - 20))
+    
     screen.blit(minimap_surface, (10, SCREEN_HEIGHT - minimap_size - 10))

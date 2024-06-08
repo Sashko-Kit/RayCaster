@@ -7,6 +7,7 @@ class Player:
     def __init__(self):
         self.x, self.y = SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2
         self.angle = 0
+        self.health = 100  # Player's health
 
     def movement(self):
         keys = pygame.key.get_pressed()
@@ -44,3 +45,8 @@ class Player:
         if game_map[map_y][map_x] == '#':
             return False
         return True
+
+    def take_damage(self, amount):
+        self.health -= amount
+        if self.health < 0:
+            self.health = 0
