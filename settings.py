@@ -9,7 +9,7 @@ FPS = 60
 BLACK = (0, 0, 0)
 
 # Map settings
-MAP_WIDTH = 16
+MAP_WIDTH = 24
 MAP_HEIGHT = 13
 TILE_SIZE = 64
 

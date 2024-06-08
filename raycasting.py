@@ -6,6 +6,9 @@ def ray_casting(screen, player, game_map, wall_texture):
     ox, oy = player.x, player.y
     xm, ym = MAP_WIDTH * TILE_SIZE, MAP_HEIGHT * TILE_SIZE
     cur_angle = player.angle - FOV / 2
+    texture_width = wall_texture.get_width()
+    texture_height = wall_texture.get_height()
+    
     for ray in range(NUM_RAYS):
         sin_a = math.sin(cur_angle)
         cos_a = math.cos(cur_angle)
@@ -17,7 +20,37 @@ def ray_casting(screen, player, game_map, wall_texture):
                 if game_map[map_y][map_x] == '#':
                     depth *= math.cos(player.angle - cur_angle)
                     proj_height = PROJ_COEFF / depth
-                    wall_column = pygame.transform.scale(wall_texture, (SCALE, int(proj_height)))
-                    screen.blit(wall_column, (ray * SCALE, SCREEN_HEIGHT // 2 - proj_height // 2))
+                    
+                    # Texture coordinates
+                    texture_x = int((x % TILE_SIZE) / TILE_SIZE * texture_width) if sin_a > 0 else int((y % TILE_SIZE) / TILE_SIZE * texture_width)
+                    wall_column = wall_texture.subsurface(texture_x, 0, 1, texture_height)
+                    wall_column = pygame.transform.scale(wall_column, (SCALE, int(proj_height)))
+                    screen.blit(wall_column, (ray * SCALE, SCREEN_HEIGHT // 2 - int(proj_height) // 2))
                     break
         cur_angle += DELTA_ANGLE
+
+    # Draw the minimap
+    minimap_width = 200
+    minimap_height = 150
+    minimap_surface = pygame.Surface((minimap_width, minimap_height))
+    minimap_surface.fill((50, 50, 50))
+    for y, row in enumerate(game_map):
+        for x, char in enumerate(row):
+            if char == '#':
+                pygame.draw.rect(minimap_surface, (255, 255, 255), (x * 5, y * 5, 5, 5))
+    pygame.draw.circle(minimap_surface, (255, 0, 0), (int(player.x / TILE_SIZE * 5), int(player.y / TILE_SIZE * 5)), 5)
+    
+    # Draw the player's field of view on the minimap
+    fov_left_angle = player.angle - FOV / 2
+    fov_right_angle = player.angle + FOV / 2
+    fov_left_x = player.x + 100 * math.cos(fov_left_angle)
+    fov_left_y = player.y + 100 * math.sin(fov_left_angle)
+    fov_right_x = player.x + 100 * math.cos(fov_right_angle)
+    fov_right_y = player.y + 100 * math.sin(fov_right_angle)
+    
+    pygame.draw.line(minimap_surface, (0, 255, 0), (int(player.x / TILE_SIZE * 5), int(player.y / TILE_SIZE * 5)),
+                     (int(fov_left_x / TILE_SIZE * 5), int(fov_left_y / TILE_SIZE * 5)), 2)
+    pygame.draw.line(minimap_surface, (0, 255, 0), (int(player.x / TILE_SIZE * 5), int(player.y / TILE_SIZE * 5)),
+                     (int(fov_right_x / TILE_SIZE * 5), int(fov_right_y / TILE_SIZE * 5)), 2)
+
+    screen.blit(minimap_surface, (10, SCREEN_HEIGHT - minimap_height - 10))

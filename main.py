@@ -1,5 +1,5 @@
 import pygame
-from settings import *
+from settings import SCREEN_WIDTH, SCREEN_HEIGHT, FPS, BLACK
 from player import Player
 from raycasting import ray_casting
 from map import game_map
