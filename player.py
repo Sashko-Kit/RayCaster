@@ -1,6 +1,6 @@
 import pygame
 import math
-from settings import TILE_SIZE, SCREEN_WIDTH, SCREEN_HEIGHT, ROTATION_SPEED, MOVE_SPEED, BOBBING_SPEED, BOBBING_AMOUNT
+from settings import TILE_SIZE, ROTATION_SPEED, MOVE_SPEED, BOBBING_SPEED, BOBBING_AMOUNT
 
 class Player:
     def __init__(self, x, y):
@@ -8,7 +8,7 @@ class Player:
         self.y = y
         self.angle = 0
         self.bobbing_offset = 0
-        self.bobbing_direction = 1
+        self.bobbing_counter = 0
 
     def update(self, map):
         keys = pygame.key.get_pressed()
@@ -34,13 +34,10 @@ class Player:
             self.bob()  # Update bobbing effect
 
     def bob(self):
-        # Bobbing effect logic
-        self.bobbing_offset += BOBBING_SPEED * self.bobbing_direction
-        if abs(self.bobbing_offset) > BOBBING_AMOUNT:
-            self.bobbing_direction *= -1
+        self.bobbing_counter += BOBBING_SPEED
+        self.bobbing_offset = BOBBING_AMOUNT * math.sin(self.bobbing_counter)
 
     def get_position(self):
-        # Return position with bobbing effect
         bob_y = self.y + self.bobbing_offset
         return self.x, bob_y
 

@@ -7,9 +7,9 @@ FOV = 60  # Field of view in degrees
 MAX_DEPTH = 800  # Max depth for ray casting
 
 # Player settings
-ROTATION_SPEED = 3  # Degrees per frame
+ROTATION_SPEED = 2  # Degrees per frame (reduced for smoother rotation)
 MOVE_SPEED = 5  # Pixels per frame
-BOBBING_SPEED = 0.1  # Speed of the bobbing effect
+BOBBING_SPEED = 0.05  # Speed of the bobbing effect (adjusted for smoothness)
 BOBBING_AMOUNT = 5  # Amount of vertical movement for bobbing effect
 
 # Colors

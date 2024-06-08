@@ -10,7 +10,8 @@ class Game:
         self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
         self.clock = pygame.time.Clock()
         self.map = Map()
-        self.player = Player(200, 200)
+        x, y = self.map.get_random_empty_position()
+        self.player = Player(x, y)
         self.ray_casting = RayCasting(self.screen, self.player, self.map)
         self.running = True
 
@@ -26,4 +27,4 @@ class Game:
             pygame.display.flip()
             self.clock.tick(FPS)
 
-        pygame.quit()
+  
