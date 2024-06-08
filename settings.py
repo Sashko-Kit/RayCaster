@@ -1,24 +1,23 @@
-# Game settings
-SCREEN_WIDTH = 800
-SCREEN_HEIGHT = 600
-FPS = 60
-TILE_SIZE = 64
-FOV = 60  # Field of view in degrees
-MAX_DEPTH = 800  # Max depth for ray casting
+import math
 
-# Player settings
-ROTATION_SPEED = 2  # Degrees per frame (reduced for smoother rotation)
-MOVE_SPEED = 5  # Pixels per frame
-BOBBING_SPEED = 0.05  # Speed of the bobbing effect (adjusted for smoothness)
-BOBBING_AMOUNT = 5  # Amount of vertical movement for bobbing effect
+# Screen settings
+SCREEN_WIDTH = 640
+SCREEN_HEIGHT = 480
+FPS = 60
 
 # Colors
-WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
-GRAY = (128, 128, 128)
-RED = (255, 0, 0)
-GREEN = (0, 255, 0)
-BLUE = (0, 0, 255)
 
-# Path to textures
-TEXTURE_PATH = 'assets/textures/wall.png'
+# Map settings
+MAP_WIDTH = 8
+MAP_HEIGHT = 8
+TILE_SIZE = 64
+
+# Player settings
+FOV = math.pi / 3
+NUM_RAYS = 120
+MAX_DEPTH = MAP_WIDTH * TILE_SIZE
+DELTA_ANGLE = FOV / NUM_RAYS
+DIST = (SCREEN_WIDTH // 2) / math.tan(FOV / 2)
+PROJ_COEFF = 3 * DIST * TILE_SIZE
+SCALE = SCREEN_WIDTH // NUM_RAYS

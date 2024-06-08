@@ -1,45 +1,46 @@
 import pygame
 import math
-from settings import TILE_SIZE, ROTATION_SPEED, MOVE_SPEED, BOBBING_SPEED, BOBBING_AMOUNT
+from settings import *
+from map import game_map
 
 class Player:
-    def __init__(self, x, y):
-        self.x = x
-        self.y = y
+    def __init__(self):
+        self.x, self.y = SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2
         self.angle = 0
-        self.bobbing_offset = 0
-        self.bobbing_counter = 0
 
-    def update(self, map):
+    def movement(self):
         keys = pygame.key.get_pressed()
-        if keys[pygame.K_a]:  # Rotate left
-            self.angle -= ROTATION_SPEED
-        if keys[pygame.K_d]:  # Rotate right
-            self.angle += ROTATION_SPEED
-        if keys[pygame.K_w]:  # Move forward
-            self.move(MOVE_SPEED, map)
-        if keys[pygame.K_s]:  # Move backward
-            self.move(-MOVE_SPEED, map)
+        sin_a = math.sin(self.angle)
+        cos_a = math.cos(self.angle)
+        speed = 5
+        dx, dy = 0, 0
+        if keys[pygame.K_w]:
+            dx += cos_a * speed
+            dy += sin_a * speed
+        if keys[pygame.K_s]:
+            dx -= cos_a * speed
+            dy -= sin_a * speed
+        if keys[pygame.K_a]:
+            dx += sin_a * speed
+            dy -= cos_a * speed
+        if keys[pygame.K_d]:
+            dx -= sin_a * speed
+            dy += cos_a * speed
 
-    def move(self, distance, map):
-        dx = distance * math.cos(math.radians(self.angle))
-        dy = distance * math.sin(math.radians(self.angle))
+        if self.check_wall_collision(dx, dy):
+            self.x += dx
+            self.y += dy
+        
+        if keys[pygame.K_LEFT]:
+            self.angle -= 0.05
+        if keys[pygame.K_RIGHT]:
+            self.angle += 0.05
 
-        new_x = self.x + dx
-        new_y = self.y + dy
-
-        if not map.is_wall(int(new_x // TILE_SIZE), int(new_y // TILE_SIZE)):
-            self.x = new_x
-            self.y = new_y
-            self.bob()  # Update bobbing effect
-
-    def bob(self):
-        self.bobbing_counter += BOBBING_SPEED
-        self.bobbing_offset = BOBBING_AMOUNT * math.sin(self.bobbing_counter)
-
-    def get_position(self):
-        bob_y = self.y + self.bobbing_offset
-        return self.x, bob_y
-
-    def get_angle(self):
-        return self.angle
+    def check_wall_collision(self, dx, dy):
+        next_x = self.x + dx
+        next_y = self.y + dy
+        map_x = int(next_x / TILE_SIZE)
+        map_y = int(next_y / TILE_SIZE)
+        if game_map[map_y * MAP_WIDTH + map_x] == '#':
+            return False
+        return True
