@@ -9,14 +9,13 @@ FPS = 60
 BLACK = (0, 0, 0)
 
 # Map settings
-MAP_WIDTH = 24
-MAP_HEIGHT = 13
+MAP_SIZE = 40  # Increased map size
 TILE_SIZE = 64
 
 # Player settings
 FOV = math.pi / 3
 NUM_RAYS = 120
-MAX_DEPTH = MAP_WIDTH * TILE_SIZE
+MAX_DEPTH = MAP_SIZE * TILE_SIZE
 DELTA_ANGLE = FOV / NUM_RAYS
 DIST = (SCREEN_WIDTH // 2) / math.tan(FOV / 2)
 PROJ_COEFF = 3 * DIST * TILE_SIZE
