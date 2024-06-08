@@ -41,6 +41,6 @@ class Player:
         next_y = self.y + dy
         map_x = int(next_x / TILE_SIZE)
         map_y = int(next_y / TILE_SIZE)
-        if game_map[map_y * MAP_WIDTH + map_x] == '#':
+        if game_map[map_y][map_x] == '#':
             return False
         return True

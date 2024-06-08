@@ -1,16 +1,16 @@
 import math
 
 # Screen settings
-SCREEN_WIDTH = 640
-SCREEN_HEIGHT = 480
+SCREEN_WIDTH = 1024
+SCREEN_HEIGHT = 768
 FPS = 60
 
 # Colors
 BLACK = (0, 0, 0)
 
 # Map settings
-MAP_WIDTH = 8
-MAP_HEIGHT = 8
+MAP_WIDTH = 16
+MAP_HEIGHT = 13
 TILE_SIZE = 64
 
 # Player settings

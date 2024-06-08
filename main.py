@@ -1,5 +1,5 @@
 import pygame
-from settings import SCREEN_WIDTH, SCREEN_HEIGHT, FPS, BLACK  # Explicitly import BLACK and other constants
+from settings import *
 from player import Player
 from raycasting import ray_casting
 from map import game_map
@@ -9,6 +9,8 @@ def main():
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
     clock = pygame.time.Clock()
     player = Player()
+    
+    wall_texture = pygame.image.load('assets/textures/wall.png').convert()
 
     while True:
         for event in pygame.event.get():
@@ -18,7 +20,7 @@ def main():
 
         player.movement()
         screen.fill(BLACK)
-        ray_casting(screen, player, game_map)
+        ray_casting(screen, player, game_map, wall_texture)
 
         pygame.display.flip()
         clock.tick(FPS)
