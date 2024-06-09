@@ -12,6 +12,7 @@ class Player:
         self.rect = pygame.Rect(self.x, self.y, TILE_SIZE // 2, TILE_SIZE // 2)
         self.speed = 5
         self.weapon = 'hand'  # Default weapon
+        self.speed_timer = 0
 
     def find_valid_spawn(self):
         while True:
@@ -50,6 +51,11 @@ class Player:
         if keys[pygame.K_RIGHT]:
             self.angle += 0.05
 
+        if self.speed_timer > 0:
+            self.speed_timer -= 1
+        else:
+            self.speed = 5
+
     def check_wall_collision(self, dx, dy):
         next_x = self.x + dx
         next_y = self.y + dy
@@ -63,3 +69,7 @@ class Player:
         self.health -= amount
         if self.health < 0:
             self.health = 0
+
+    def speed_boost(self):
+        self.speed = 8
+        self.speed_timer = 300  # duration of the speed boost
