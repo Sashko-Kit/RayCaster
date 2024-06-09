@@ -1,9 +1,9 @@
 import pygame
 import math
-from settings import *
-from enemy import Enemy  # Add this import
-from projectile import Projectile  # Add this import
-from pickup import Pickup  # Add this import
+from settings import TILE_SIZE, SCREEN_WIDTH, SCREEN_HEIGHT, FOV, NUM_RAYS, MAX_DEPTH, PROJ_COEFF, DELTA_ANGLE, SCALE, MAP_SIZE
+from projectile import Projectile
+from pickup import Pickup
+from enemy import Enemy
 
 def ray_casting(screen, player, game_map, wall_texture, enemies, projectiles, pickups):
     ox, oy = player.x, player.y
@@ -36,19 +36,11 @@ def ray_casting(screen, player, game_map, wall_texture, enemies, projectiles, pi
                     break
         cur_angle += DELTA_ANGLE
 
-    # Function to draw entities
-    def draw_entity(entity, entity_image, entity_depth, angle, scale, screen_x):
-        if 0 <= int(screen_x / SCALE) < NUM_RAYS and entity_depth < wall_depths[int(screen_x / SCALE)]:
-            entity_image = pygame.transform.scale(entity_image, (int(TILE_SIZE * scale), int(TILE_SIZE * scale)))
-            screen.blit(entity_image, (screen_x - entity_image.get_width() // 2, SCREEN_HEIGHT // 2 - entity_image.get_height() // 2))
-
-    # Sort entities by distance from the player
-    sorted_entities = sorted(enemies + projectiles + pickups, key=lambda entity: (entity.x - ox) ** 2 + (entity.y - oy) ** 2, reverse=True)
-
-    # Render entities
-    for entity in sorted_entities:
-        dx = entity.x - ox
-        dy = entity.y - oy
+    # Render objects (enemies, projectiles, pickups) sorted by distance
+    all_objects = sorted(enemies + projectiles + pickups, key=lambda obj: (obj.x - ox) ** 2 + (obj.y - oy) ** 2, reverse=True)
+    for obj in all_objects:
+        dx = obj.x - ox
+        dy = obj.y - oy
         distance = math.sqrt(dx**2 + dy**2)
         angle = math.atan2(dy, dx) - player.angle
 
@@ -57,13 +49,10 @@ def ray_casting(screen, player, game_map, wall_texture, enemies, projectiles, pi
             proj_height = PROJ_COEFF / depth
             scale = proj_height / TILE_SIZE
             screen_x = (SCREEN_WIDTH // 2) + int((angle / DELTA_ANGLE) * SCALE)
-
-            if isinstance(entity, Enemy):
-                draw_entity(entity, entity.image, depth, angle, scale, screen_x)
-            elif isinstance(entity, Projectile):
-                draw_entity(entity, entity.image, depth, angle, scale, screen_x)
-            elif isinstance(entity, Pickup):
-                draw_entity(entity, entity.image, depth, angle, scale * 0.5, screen_x)  # Smaller size for pickups
+            if 0 <= int(screen_x / SCALE) < NUM_RAYS and depth < wall_depths[int(screen_x / SCALE)]:
+                image_scale = 0.5 if isinstance(obj, (Projectile, Pickup)) else 1.0
+                obj_image = pygame.transform.scale(obj.image, (int(TILE_SIZE * scale * image_scale), int(TILE_SIZE * scale * image_scale)))
+                screen.blit(obj_image, (screen_x - obj_image.get_width() // 2, SCREEN_HEIGHT // 2 - obj_image.get_height() // 2))
 
     # Draw the minimap
     minimap_size = min(SCREEN_WIDTH, SCREEN_HEIGHT) // 3

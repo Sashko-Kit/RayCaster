@@ -9,7 +9,7 @@ class Projectile:
         self.angle = angle
         self.image = image
         self.active = True
-        self.speed = 1000  # Bullet speed in pixels per second
+        self.speed = 500  # Bullet speed in pixels per second
 
     def update(self, dt, game_map, enemies):
         if not self.active:
@@ -36,3 +36,8 @@ class Projectile:
         if self.active:
             bullet_rect = self.image.get_rect(center=(self.x, self.y))
             screen.blit(self.image, bullet_rect)
+
+class Flame(Projectile):
+    def __init__(self, x, y, angle, image):
+        super().__init__(x, y, angle, image)
+        self.speed = 300  # Flames are slower
