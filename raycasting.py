@@ -48,9 +48,10 @@ def ray_casting(screen, player, game_map, wall_texture, enemies, projectiles):
             proj_height = PROJ_COEFF / depth
             scale = proj_height / TILE_SIZE
             screen_x = (SCREEN_WIDTH // 2) + int((angle / DELTA_ANGLE) * SCALE)
-            if 0 <= int(screen_x / SCALE) < NUM_RAYS and depth < wall_depths[int(screen_x / SCALE)]:
-                enemy_image = pygame.transform.scale(enemy.image, (int(TILE_SIZE * scale), int(TILE_SIZE * scale)))
-                screen.blit(enemy_image, (screen_x - enemy_image.get_width() // 2, SCREEN_HEIGHT // 2 - enemy_image.get_height() // 2))
+            if 0 <= int(screen_x / SCALE) < NUM_RAYS:
+                if depth < wall_depths[int(screen_x / SCALE)]:
+                    enemy_image = pygame.transform.scale(enemy.image, (int(TILE_SIZE * scale), int(TILE_SIZE * scale)))
+                    screen.blit(enemy_image, (screen_x - enemy_image.get_width() // 2, SCREEN_HEIGHT // 2 - enemy_image.get_height() // 2))
 
     # Render projectiles
     for projectile in projectiles:
