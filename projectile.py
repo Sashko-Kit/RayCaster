@@ -9,7 +9,7 @@ class Projectile:
         self.angle = angle
         self.image = image
         self.active = True
-        self.speed = 500  # Bullet speed in pixels per second
+        self.speed = 1000  # Bullet speed in pixels per second
 
     def update(self, dt, game_map, enemies):
         if not self.active:

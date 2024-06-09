@@ -9,6 +9,7 @@ class Player:
         self.x, self.y = self.find_valid_spawn()
         self.angle = 0
         self.health = 100  # Player's health
+        self.speed = 5
 
     def find_valid_spawn(self):
         while True:
@@ -23,20 +24,19 @@ class Player:
         keys = pygame.key.get_pressed()
         sin_a = math.sin(self.angle)
         cos_a = math.cos(self.angle)
-        speed = 5
         dx, dy = 0, 0
         if keys[pygame.K_w]:
-            dx += cos_a * speed
-            dy += sin_a * speed
+            dx += cos_a * self.speed
+            dy += sin_a * self.speed
         if keys[pygame.K_s]:
-            dx -= cos_a * speed
-            dy -= sin_a * speed
+            dx -= cos_a * self.speed
+            dy -= sin_a * self.speed
         if keys[pygame.K_a]:
-            dx += sin_a * speed
-            dy -= cos_a * speed
+            dx += sin_a * self.speed
+            dy -= cos_a * self.speed
         if keys[pygame.K_d]:
-            dx -= sin_a * speed
-            dy += cos_a * speed
+            dx -= sin_a * self.speed
+            dy += cos_a * self.speed
 
         if self.check_wall_collision(dx, dy):
             self.x += dx

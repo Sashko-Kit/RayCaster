@@ -2,7 +2,7 @@ import pygame
 import math
 from settings import *
 
-def ray_casting(screen, player, game_map, wall_texture, enemies, projectiles):
+def ray_casting(screen, player, game_map, wall_texture, enemies, projectiles, pickups):
     ox, oy = player.x, player.y
     map_size = MAP_SIZE * TILE_SIZE
     cur_angle = player.angle - FOV / 2
@@ -48,10 +48,9 @@ def ray_casting(screen, player, game_map, wall_texture, enemies, projectiles):
             proj_height = PROJ_COEFF / depth
             scale = proj_height / TILE_SIZE
             screen_x = (SCREEN_WIDTH // 2) + int((angle / DELTA_ANGLE) * SCALE)
-            if 0 <= int(screen_x / SCALE) < NUM_RAYS:
-                if depth < wall_depths[int(screen_x / SCALE)]:
-                    enemy_image = pygame.transform.scale(enemy.image, (int(TILE_SIZE * scale), int(TILE_SIZE * scale)))
-                    screen.blit(enemy_image, (screen_x - enemy_image.get_width() // 2, SCREEN_HEIGHT // 2 - enemy_image.get_height() // 2))
+            if 0 <= int(screen_x / SCALE) < NUM_RAYS and depth < wall_depths[int(screen_x / SCALE)]:
+                enemy_image = pygame.transform.scale(enemy.image, (int(TILE_SIZE * scale), int(TILE_SIZE * scale)))
+                screen.blit(enemy_image, (screen_x - enemy_image.get_width() // 2, SCREEN_HEIGHT // 2 - enemy_image.get_height() // 2))
 
     # Render projectiles
     for projectile in projectiles:
@@ -71,6 +70,22 @@ def ray_casting(screen, player, game_map, wall_texture, enemies, projectiles):
                 if 0 <= int(screen_x / SCALE) < NUM_RAYS and depth < wall_depths[int(screen_x / SCALE)]:
                     projectile_image = pygame.transform.scale(projectile.image, (int(TILE_SIZE * scale), int(TILE_SIZE * scale)))
                     screen.blit(projectile_image, (screen_x - projectile_image.get_width() // 2, SCREEN_HEIGHT // 2 - projectile_image.get_height() // 2))
+
+    # Render pickups
+    for pickup in pickups:
+        dx = pickup.x - ox
+        dy = pickup.y - oy
+        distance = math.sqrt(dx**2 + dy**2)
+        angle = math.atan2(dy, dx) - player.angle
+
+        if -FOV / 2 < angle < FOV / 2:
+            depth = distance * math.cos(angle)
+            proj_height = PROJ_COEFF / depth
+            scale = proj_height / TILE_SIZE
+            screen_x = (SCREEN_WIDTH // 2) + int((angle / DELTA_ANGLE) * SCALE)
+            if 0 <= int(screen_x / SCALE) < NUM_RAYS and depth < wall_depths[int(screen_x / SCALE)]:
+                pickup_image = pygame.transform.scale(pickup.image, (int(TILE_SIZE * scale * 0.5), int(TILE_SIZE * scale * 0.5)))  # Smaller size
+                screen.blit(pickup_image, (screen_x - pickup_image.get_width() // 2, SCREEN_HEIGHT // 2 - pickup_image.get_height() // 2))
 
     # Draw the minimap
     minimap_size = min(SCREEN_WIDTH, SCREEN_HEIGHT) // 3
