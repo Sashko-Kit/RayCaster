@@ -10,6 +10,8 @@ class Player:
         self.angle = 0
         self.health = 100  # Player's health
         self.speed = 5
+        self.speed_timer = 0
+        self.damage_cooldown = 0  # Timer for damage cooldown
 
     def find_valid_spawn(self):
         while True:
@@ -47,6 +49,16 @@ class Player:
         if keys[pygame.K_RIGHT]:
             self.angle += 0.05
 
+        # Update speed timer
+        if self.speed_timer > 0:
+            self.speed_timer -= 1
+        else:
+            self.speed = 5
+
+        # Update damage cooldown timer
+        if self.damage_cooldown > 0:
+            self.damage_cooldown -= 1
+
     def check_wall_collision(self, dx, dy):
         next_x = self.x + dx
         next_y = self.y + dy
@@ -57,6 +69,17 @@ class Player:
         return True
 
     def take_damage(self, amount):
-        self.health -= amount
-        if self.health < 0:
-            self.health = 0
+        if self.damage_cooldown <= 0:
+            self.health -= amount
+            if self.health < 0:
+                self.health = 0
+            self.damage_cooldown = FPS * 2  # 2 seconds cooldown
+
+    def heal(self, amount):
+        self.health += amount
+        if self.health > 100:
+            self.health = 100
+
+    def speed_up(self):
+        self.speed = 10
+        self.speed_timer = FPS * 5  # Speed up for 5 seconds

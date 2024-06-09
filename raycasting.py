@@ -1,6 +1,9 @@
 import pygame
 import math
 from settings import *
+from enemy import Enemy  # Add this import
+from projectile import Projectile  # Add this import
+from pickup import Pickup  # Add this import
 
 def ray_casting(screen, player, game_map, wall_texture, enemies, projectiles, pickups):
     ox, oy = player.x, player.y
@@ -33,13 +36,19 @@ def ray_casting(screen, player, game_map, wall_texture, enemies, projectiles, pi
                     break
         cur_angle += DELTA_ANGLE
 
-    # Sort enemies by distance from the player
-    sorted_enemies = sorted(enemies, key=lambda enemy: (enemy.x - ox) ** 2 + (enemy.y - oy) ** 2, reverse=True)
+    # Function to draw entities
+    def draw_entity(entity, entity_image, entity_depth, angle, scale, screen_x):
+        if 0 <= int(screen_x / SCALE) < NUM_RAYS and entity_depth < wall_depths[int(screen_x / SCALE)]:
+            entity_image = pygame.transform.scale(entity_image, (int(TILE_SIZE * scale), int(TILE_SIZE * scale)))
+            screen.blit(entity_image, (screen_x - entity_image.get_width() // 2, SCREEN_HEIGHT // 2 - entity_image.get_height() // 2))
 
-    # Render enemies
-    for enemy in sorted_enemies:
-        dx = enemy.x - ox
-        dy = enemy.y - oy
+    # Sort entities by distance from the player
+    sorted_entities = sorted(enemies + projectiles + pickups, key=lambda entity: (entity.x - ox) ** 2 + (entity.y - oy) ** 2, reverse=True)
+
+    # Render entities
+    for entity in sorted_entities:
+        dx = entity.x - ox
+        dy = entity.y - oy
         distance = math.sqrt(dx**2 + dy**2)
         angle = math.atan2(dy, dx) - player.angle
 
@@ -48,44 +57,13 @@ def ray_casting(screen, player, game_map, wall_texture, enemies, projectiles, pi
             proj_height = PROJ_COEFF / depth
             scale = proj_height / TILE_SIZE
             screen_x = (SCREEN_WIDTH // 2) + int((angle / DELTA_ANGLE) * SCALE)
-            if 0 <= int(screen_x / SCALE) < NUM_RAYS and depth < wall_depths[int(screen_x / SCALE)]:
-                enemy_image = pygame.transform.scale(enemy.image, (int(TILE_SIZE * scale), int(TILE_SIZE * scale)))
-                screen.blit(enemy_image, (screen_x - enemy_image.get_width() // 2, SCREEN_HEIGHT // 2 - enemy_image.get_height() // 2))
 
-    # Render projectiles
-    for projectile in projectiles:
-        if projectile.active:
-            proj_x = projectile.x
-            proj_y = projectile.y
-            dx = proj_x - ox
-            dy = proj_y - oy
-            distance = math.sqrt(dx ** 2 + dy ** 2)
-            angle = math.atan2(dy, dx) - player.angle
-
-            if -FOV / 2 < angle < FOV / 2:
-                depth = distance * math.cos(angle)
-                proj_height = PROJ_COEFF / depth
-                scale = proj_height / TILE_SIZE
-                screen_x = (SCREEN_WIDTH // 2) + int((angle / DELTA_ANGLE) * SCALE)
-                if 0 <= int(screen_x / SCALE) < NUM_RAYS and depth < wall_depths[int(screen_x / SCALE)]:
-                    projectile_image = pygame.transform.scale(projectile.image, (int(TILE_SIZE * scale), int(TILE_SIZE * scale)))
-                    screen.blit(projectile_image, (screen_x - projectile_image.get_width() // 2, SCREEN_HEIGHT // 2 - projectile_image.get_height() // 2))
-
-    # Render pickups
-    for pickup in pickups:
-        dx = pickup.x - ox
-        dy = pickup.y - oy
-        distance = math.sqrt(dx**2 + dy**2)
-        angle = math.atan2(dy, dx) - player.angle
-
-        if -FOV / 2 < angle < FOV / 2:
-            depth = distance * math.cos(angle)
-            proj_height = PROJ_COEFF / depth
-            scale = proj_height / TILE_SIZE
-            screen_x = (SCREEN_WIDTH // 2) + int((angle / DELTA_ANGLE) * SCALE)
-            if 0 <= int(screen_x / SCALE) < NUM_RAYS and depth < wall_depths[int(screen_x / SCALE)]:
-                pickup_image = pygame.transform.scale(pickup.image, (int(TILE_SIZE * scale * 0.5), int(TILE_SIZE * scale * 0.5)))  # Smaller size
-                screen.blit(pickup_image, (screen_x - pickup_image.get_width() // 2, SCREEN_HEIGHT // 2 - pickup_image.get_height() // 2))
+            if isinstance(entity, Enemy):
+                draw_entity(entity, entity.image, depth, angle, scale, screen_x)
+            elif isinstance(entity, Projectile):
+                draw_entity(entity, entity.image, depth, angle, scale, screen_x)
+            elif isinstance(entity, Pickup):
+                draw_entity(entity, entity.image, depth, angle, scale * 0.5, screen_x)  # Smaller size for pickups
 
     # Draw the minimap
     minimap_size = min(SCREEN_WIDTH, SCREEN_HEIGHT) // 3
