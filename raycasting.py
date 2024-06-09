@@ -2,12 +2,15 @@ import pygame
 import math
 from settings import *
 
-def ray_casting(screen, player, game_map, wall_texture):
+def ray_casting(screen, player, game_map, wall_texture, enemies, projectiles):
     ox, oy = player.x, player.y
     map_size = MAP_SIZE * TILE_SIZE
     cur_angle = player.angle - FOV / 2
     texture_width = wall_texture.get_width()
     texture_height = wall_texture.get_height()
+    
+    # Prepare a list to hold depths for rendering enemies correctly
+    wall_depths = [float('inf')] * NUM_RAYS
     
     for ray in range(NUM_RAYS):
         sin_a = math.sin(cur_angle)
@@ -26,8 +29,47 @@ def ray_casting(screen, player, game_map, wall_texture):
                     wall_column = wall_texture.subsurface(texture_x, 0, 1, texture_height)
                     wall_column = pygame.transform.scale(wall_column, (SCALE, int(proj_height)))
                     screen.blit(wall_column, (ray * SCALE, SCREEN_HEIGHT // 2 - int(proj_height) // 2))
+                    wall_depths[ray] = depth  # Save the depth of this wall
                     break
         cur_angle += DELTA_ANGLE
+
+    # Sort enemies by distance from the player
+    sorted_enemies = sorted(enemies, key=lambda enemy: (enemy.x - ox) ** 2 + (enemy.y - oy) ** 2, reverse=True)
+
+    # Render enemies
+    for enemy in sorted_enemies:
+        dx = enemy.x - ox
+        dy = enemy.y - oy
+        distance = math.sqrt(dx**2 + dy**2)
+        angle = math.atan2(dy, dx) - player.angle
+
+        if -FOV / 2 < angle < FOV / 2:
+            depth = distance * math.cos(angle)
+            proj_height = PROJ_COEFF / depth
+            scale = proj_height / TILE_SIZE
+            screen_x = (SCREEN_WIDTH // 2) + int((angle / DELTA_ANGLE) * SCALE)
+            if 0 <= int(screen_x / SCALE) < NUM_RAYS and depth < wall_depths[int(screen_x / SCALE)]:
+                enemy_image = pygame.transform.scale(enemy.image, (int(TILE_SIZE * scale), int(TILE_SIZE * scale)))
+                screen.blit(enemy_image, (screen_x - enemy_image.get_width() // 2, SCREEN_HEIGHT // 2 - enemy_image.get_height() // 2))
+
+    # Render projectiles
+    for projectile in projectiles:
+        if projectile.active:
+            proj_x = projectile.x
+            proj_y = projectile.y
+            dx = proj_x - ox
+            dy = proj_y - oy
+            distance = math.sqrt(dx ** 2 + dy ** 2)
+            angle = math.atan2(dy, dx) - player.angle
+
+            if -FOV / 2 < angle < FOV / 2:
+                depth = distance * math.cos(angle)
+                proj_height = PROJ_COEFF / depth
+                scale = proj_height / TILE_SIZE
+                screen_x = (SCREEN_WIDTH // 2) + int((angle / DELTA_ANGLE) * SCALE)
+                if 0 <= int(screen_x / SCALE) < NUM_RAYS and depth < wall_depths[int(screen_x / SCALE)]:
+                    projectile_image = pygame.transform.scale(projectile.image, (int(TILE_SIZE * scale), int(TILE_SIZE * scale)))
+                    screen.blit(projectile_image, (screen_x - projectile_image.get_width() // 2, SCREEN_HEIGHT // 2 - projectile_image.get_height() // 2))
 
     # Draw the minimap
     minimap_size = min(SCREEN_WIDTH, SCREEN_HEIGHT) // 3
@@ -52,6 +94,10 @@ def ray_casting(screen, player, game_map, wall_texture):
                      (int(fov_left_x / TILE_SIZE * cell_size), int(fov_left_y / TILE_SIZE * cell_size)), 2)
     pygame.draw.line(minimap_surface, (0, 255, 0), (int(player.x / TILE_SIZE * cell_size), int(player.y / TILE_SIZE * cell_size)),
                      (int(fov_right_x / TILE_SIZE * cell_size), int(fov_right_y / TILE_SIZE * cell_size)), 2)
+
+    # Draw the enemies on the minimap
+    for enemy in enemies:
+        pygame.draw.circle(minimap_surface, (255, 0, 0), (int(enemy.x / TILE_SIZE * cell_size), int(enemy.y / TILE_SIZE * cell_size)), max(2, int(cell_size / 2)))
 
     # Draw the health bar
     health_bar_width = minimap_size

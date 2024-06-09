@@ -1,9 +1,12 @@
 import pygame
-from settings import SCREEN_WIDTH, SCREEN_HEIGHT, FPS, BLACK
+import math
+import random
+from settings import SCREEN_WIDTH, SCREEN_HEIGHT, FPS, BLACK, TILE_SIZE, MAP_SIZE
 from player import Player
 from raycasting import ray_casting
 from map import game_map
-import math
+from projectile import Projectile  # Import Projectile class
+from enemy import Enemy  # Import Enemy class
 
 def main():
     pygame.init()
@@ -13,22 +16,65 @@ def main():
     
     wall_texture = pygame.image.load('assets/textures/wall.png').convert()
     hand_sprite = pygame.image.load('assets/textures/caster.png').convert_alpha()
+    hand_shooting_sprite = pygame.image.load('assets/textures/caster2.png').convert_alpha()
+    bullet_image = pygame.image.load('assets/textures/bullet.png').convert_alpha()
+    enemy_image = pygame.image.load('assets/textures/enemy.png').convert_alpha()  # Ensure this image is in the correct location
+    
+    hand_sprite = pygame.transform.scale(hand_sprite, (450, 450))  # Further enlarge the sprite
+    hand_shooting_sprite = pygame.transform.scale(hand_shooting_sprite, (450, 450))  # Further enlarge the shooting sprite
+    bullet_image = pygame.transform.scale(bullet_image, (40, 40))  # Increase the bullet size
+    enemy_image = pygame.transform.scale(enemy_image, (TILE_SIZE // 2, TILE_SIZE // 2))  # Adjust enemy size to fit better in corridors
 
-    hand_sprite = pygame.transform.scale(hand_sprite, (400, 400))  # Further enlarge the sprite
+    projectiles = []
+    enemies = []
+    for _ in range(5):  # Spawn multiple enemies at random positions on the map
+        while True:
+            x = random.randint(0, len(game_map[0]) - 1) * TILE_SIZE
+            y = random.randint(0, len(game_map) - 1) * TILE_SIZE
+            if game_map[y // TILE_SIZE][x // TILE_SIZE] != '#':
+                enemies.append(Enemy(x, y, enemy_image))
+                break
+    
+    shooting = False
+    shooting_duration = 0.1  # Duration for displaying the shooting sprite
+    shooting_timer = 0
 
     bobbing_amplitude = 5  # Amplitude of the bobbing motion
     bobbing_frequency = 0.1  # Frequency of the bobbing motion
     bobbing_phase = 0
 
     while True:
+        dt = clock.tick(FPS) / 1000  # Delta time in seconds
+
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 exit()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE:
+                    # Calculate the tip of the finger position
+                    finger_tip_x = player.x + math.cos(player.angle) * 50  # Adjust the offset as needed
+                    finger_tip_y = player.y + math.sin(player.angle) * 50
+                    # Shoot a projectile
+                    projectiles.append(Projectile(finger_tip_x, finger_tip_y, player.angle, bullet_image))
+                    shooting = True
+                    shooting_timer = shooting_duration
+                    print(f"Shot fired: {len(projectiles)} projectiles in the air")
 
         player.movement()
         screen.fill(BLACK)
-        ray_casting(screen, player, game_map, wall_texture)
+        ray_casting(screen, player, game_map, wall_texture, enemies, projectiles)  # Pass enemies and projectiles to raycasting
+
+        # Update and draw projectiles
+        for projectile in projectiles:
+            projectile.update(dt, game_map, enemies)
+            projectile.draw(screen)
+            print(f"Projectile position: ({projectile.x}, {projectile.y}) Active: {projectile.active}")
+        projectiles = [p for p in projectiles if p.active]
+
+        # Update enemies
+        for enemy in enemies:
+            enemy.update(player.x, player.y, game_map)
 
         # Update bobbing phase
         if any(pygame.key.get_pressed()):  # If any key is pressed, bob faster
@@ -39,11 +85,17 @@ def main():
         bobbing_offset = math.sin(bobbing_phase) * bobbing_amplitude
 
         # Draw the hand sprite with bobbing effect
-        hand_sprite_rect = hand_sprite.get_rect(bottomright=(SCREEN_WIDTH, SCREEN_HEIGHT - bobbing_offset))
-        screen.blit(hand_sprite, hand_sprite_rect)
+        if shooting:
+            hand_sprite_rect = hand_shooting_sprite.get_rect(bottomright=(SCREEN_WIDTH, SCREEN_HEIGHT - bobbing_offset))
+            screen.blit(hand_shooting_sprite, hand_sprite_rect)
+            shooting_timer -= dt
+            if shooting_timer <= 0:
+                shooting = False
+        else:
+            hand_sprite_rect = hand_sprite.get_rect(bottomright=(SCREEN_WIDTH, SCREEN_HEIGHT - bobbing_offset))
+            screen.blit(hand_sprite, hand_sprite_rect)
 
         pygame.display.flip()
-        clock.tick(FPS)
 
 if __name__ == '__main__':
     main()

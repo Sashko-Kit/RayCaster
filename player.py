@@ -2,12 +2,22 @@ import pygame
 import math
 from settings import *
 from map import game_map
+import random
 
 class Player:
     def __init__(self):
-        self.x, self.y = SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2
+        self.x, self.y = self.find_valid_spawn()
         self.angle = 0
         self.health = 100  # Player's health
+
+    def find_valid_spawn(self):
+        while True:
+            x = random.randint(1, MAP_SIZE - 1) * TILE_SIZE + TILE_SIZE // 2
+            y = random.randint(1, MAP_SIZE - 1) * TILE_SIZE + TILE_SIZE // 2
+            map_x = int(x / TILE_SIZE)
+            map_y = int(y / TILE_SIZE)
+            if game_map[map_y][map_x] == '.':
+                return x, y
 
     def movement(self):
         keys = pygame.key.get_pressed()
